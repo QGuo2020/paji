@@ -1,0 +1,1808 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#ffc93c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>随便按吧 · 颜色与音符</title>
+<style>
+/* ===========================================================
+   随便按吧 · 颜色与音符
+   基调：奶油纸 + 粉彩天空 + 糖果色厚笔刷 + 大圆角
+   =========================================================== */
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: #fff8ee;
+  color: #3b2f2a;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system,
+               "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+body {
+  background-image:
+    radial-gradient(120% 70% at 50% -12%, #e4f6ff 0%, rgba(228, 246, 255, 0) 62%),
+    radial-gradient(90% 60% at 8% 108%, #fff0d8 0%, rgba(255, 240, 216, 0) 62%),
+    linear-gradient(180deg, #fffdf7 0%, #fff8ee 55%, #fff2e0 100%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='200' height='200' filter='url(%23n)' opacity='0.055'/></svg>");
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat;
+  background-size: auto, auto, auto, 200px 200px;
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='30' height='30'><circle cx='15' cy='15' r='10.5' fill='%23ffffff' fill-opacity='0.92' stroke='%233b2f2a' stroke-width='2.6'/></svg>") 15 15, crosshair;
+}
+
+canvas {
+  position: fixed;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+#paint { z-index: 1; }
+#fx    { z-index: 2; }
+
+/* ---------------- 开始页 ---------------- */
+
+#start {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(255, 250, 242, 0.62);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+#start.gone {
+  opacity: 0;
+  transform: scale(1.05);
+  pointer-events: none;
+}
+
+.card {
+  position: relative;
+  width: min(560px, 94vw);
+  padding: 40px 30px 28px;
+  border-radius: 42px;
+  background: #ffffff;
+  box-shadow:
+    0 34px 70px -34px rgba(96, 70, 46, 0.5),
+    0 12px 24px -18px rgba(96, 70, 46, 0.28),
+    inset 0 2px 0 rgba(255, 255, 255, 0.9);
+  text-align: center;
+}
+
+/* 卡片背后手绘感色块 */
+.drops { position: absolute; inset: -34px; pointer-events: none; z-index: -1; }
+
+.d {
+  position: absolute;
+  display: block;
+  border-radius: 62% 38% 55% 45% / 48% 55% 45% 52%;
+  opacity: 0.9;
+  filter: saturate(1.02);
+}
+
+.d1 { width: 108px; height: 96px;  left: -26px;  top: 6px;    background: #ff8fab; transform: rotate(-14deg); }
+.d2 { width: 76px;  height: 84px;  right: -14px; top: 46px;   background: #4ecdc4; transform: rotate(18deg); }
+.d3 { width: 132px; height: 104px; left: 46px;   bottom: -46px; background: #ffc93c; transform: rotate(9deg); }
+.d4 { width: 54px;  height: 56px;  right: 34px;  bottom: -26px; background: #a06cd5; transform: rotate(-11deg); }
+.d5 { width: 40px;  height: 40px;  left: 38%;    top: -30px;  background: #5bb86a; }
+
+/* 顺手滴两滴，别太整齐 */
+.d1::after, .d3::after {
+  content: "";
+  position: absolute;
+  left: 46%;
+  top: 78%;
+  width: 20%;
+  height: 62%;
+  background: inherit;
+  border-radius: 40% 40% 999px 999px / 12% 12% 70% 70%;
+}
+.d3::after { left: 68%; width: 15%; height: 46%; }
+
+h1 {
+  margin: 0 0 10px;
+  font-size: clamp(28px, 5.4vw, 42px);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #3b2f2a;
+}
+
+.sub {
+  margin: 0 0 22px;
+  font-size: clamp(13px, 2.4vw, 15.5px);
+  line-height: 1.85;
+  color: #8a7a6d;
+  font-weight: 500;
+}
+
+#go {
+  width: 108px;
+  height: 108px;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  font-size: 46px;
+  line-height: 1;
+  cursor: pointer;
+  background:
+    radial-gradient(circle at 32% 28%, #fff6d8 0%, #ffc93c 46%, #ff9f45 100%);
+  box-shadow:
+    0 18px 26px -14px rgba(255, 159, 69, 0.85),
+    inset 0 -6px 12px rgba(214, 122, 30, 0.32),
+    inset 0 4px 8px rgba(255, 255, 255, 0.65);
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease;
+}
+
+#go:hover  { transform: scale(1.06) rotate(-4deg); }
+#go:active { transform: scale(0.94); }
+#go span   { display: block; transform: translateY(1px); }
+
+.hint {
+  margin: 20px 0 0;
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
+  color: #b1a498;
+  font-weight: 500;
+}
+
+.hint2 {
+  margin: 6px 0 0;
+  font-size: 11.5px;
+  color: #c4b8ac;
+  letter-spacing: 0.02em;
+}
+
+/* 全屏时把开始页彻底让开 */
+body.is-fs #start.gone { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  #start, #go { transition: none; }
+}
+
+</style>
+<!-- bundled: single file, no external css/js -->
+</head>
+<body>
+
+<canvas id="paint" aria-hidden="true"></canvas>
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<div id="start">
+  <div class="card">
+    <div class="drops" aria-hidden="true">
+      <span class="d d1"></span>
+      <span class="d d2"></span>
+      <span class="d d3"></span>
+      <span class="d d4"></span>
+      <span class="d d5"></span>
+    </div>
+    <h1>随便按吧</h1>
+    <p class="sub">键盘、鼠标、触摸板<br>每一下都会变出颜色和音乐</p>
+    <button id="go" type="button" aria-label="开始玩"><span aria-hidden="true">🎨</span></button>
+    <p class="hint">按任意键 / 点一下开始</p>
+    <p class="hint hint2">F11 全屏　·　Ctrl + Shift + X 清屏重画</p>
+  </div>
+</div>
+
+<script>
+/* ===========================================================
+   guard.js — 输入守卫
+   目标：小朋友乱按时，除了「画颜料 + 出声音」什么都不该发生。
+   唯一保留的功能键：F11（切换全屏）。
+   =========================================================== */
+
+window.Guard = (function () {
+  'use strict';
+
+  /* 允许产生效果的键（其余一律拦掉） */
+  var EFFECT_KEYS = {
+    'Enter': 1, 'NumpadEnter': 1,
+    'ArrowUp': 1, 'ArrowDown': 1, 'ArrowLeft': 1, 'ArrowRight': 1,
+    'Spacebar': 1
+  };
+
+  var lastToggleAt = 0;
+
+  /* ---------- 按键分类 ---------- */
+
+  function hasModifier(e) {
+    return !!(e.ctrlKey || e.altKey || e.metaKey);
+  }
+
+  function isEffectKey(e) {
+    var k = e.key || '';
+    if (hasModifier(e)) return false;           // Ctrl/Alt/Win 组合一律不算效果
+    if (EFFECT_KEYS[k] === 1) return true;
+    if (k === ' ' || k.length === 1) return true; // 字母、数字、标点、空格
+    return false;                                // 其余：Shift/Ctrl/Tab/Esc/F1..F12/方向...
+  }
+
+  function classify(e) {
+    var k = e.key || '';
+    if (k === 'F11') return 'fullscreen';
+    if (k === 'Process' || k === 'Dead' || k === 'Unidentified' || k === 'Compose') return 'blocked';
+    if (k === 'F12') return 'blocked';
+    return isEffectKey(e) ? 'effect' : 'blocked';
+  }
+
+  /* ---------- 全屏 ---------- */
+
+  function requestFs() {
+    var el = document.documentElement;
+    try {
+      var p;
+      if (el.requestFullscreen) p = el.requestFullscreen({ navigationUI: 'hide' });
+      else if (el.webkitRequestFullscreen) p = el.webkitRequestFullscreen();
+      if (p && p.catch) p.catch(function () {});
+    } catch (err) { /* 没有用户手势等情况，忽略 */ }
+  }
+
+  function exitFs() {
+    try {
+      var p;
+      if (document.exitFullscreen) p = document.exitFullscreen();
+      else if (document.webkitExitFullscreen) p = document.webkitExitFullscreen();
+      if (p && p.catch) p.catch(function () {});
+    } catch (err) {}
+  }
+
+  function toggleFullscreen() {
+    var now = performance.now();
+    if (now - lastToggleAt < 520) return;   // 防止连按来回打架
+    lastToggleAt = now;
+
+    var was = isFullscreen();
+
+    /* 等一小会儿再看状态：如果浏览器自己处理了 F11，就不要重复操作，
+       否则会和浏览器原生的全屏切换互相抵消，看起来像"按了没反应"。 */
+    setTimeout(function () {
+      if (isFullscreen() !== was) return;
+      if (was) exitFs();
+      else requestFs();
+    }, 240);
+  }
+
+  function isFullscreen() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement);
+  }
+
+  /* 全屏时尝试锁定键盘：能拿到 Esc / 大部分系统快捷键 */
+  function syncFullscreen() {
+    var on = isFullscreen();
+    document.body.classList.toggle('is-fs', on);
+    try {
+      if (on && navigator.keyboard && navigator.keyboard.lock) navigator.keyboard.lock();
+      else if (!on && navigator.keyboard && navigator.keyboard.unlock) navigator.keyboard.unlock();
+    } catch (err) {}
+  }
+
+  /* ---------- 家长快捷键：清屏 ---------- */
+
+  /* Ctrl+Shift+X（主）或 Ctrl+Shift+Delete（好记的别名） */
+  function isClearCombo(e) {
+    var k = (e.key || '').toLowerCase();
+    return !!(e.ctrlKey && e.shiftKey && (k === 'x' || k === 'delete' || k === 'backspace'));
+  }
+
+  /* ---------- 键盘 ---------- */
+
+  function onKeyDown(e) {
+    if (isClearCombo(e)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if (!e.repeat && typeof window.__toyClear === 'function') window.__toyClear();
+      return;
+    }
+
+    var cls = classify(e);
+
+    if (cls === 'effect') {
+      e.preventDefault();            // 无输入框页面：只用来阻止空格滚动等默认行为
+      return;                        // 交给 main.js 出效果
+    }
+
+    e.preventDefault();
+    e.stopImmediatePropagation();    // 阻断一切后续处理（包括 main.js）
+
+    if (cls === 'fullscreen') {
+      if (!e.repeat) toggleFullscreen();
+      return;
+    }
+    /* 还没开始玩时，按到功能键也算"想开始" */
+    if (!window.__toyRunning && typeof window.__toyStart === 'function') window.__toyStart();
+  }
+
+  function onKeyUp(e) {
+    if (isClearCombo(e)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      return;
+    }
+    var cls = classify(e);
+    if (cls === 'effect') return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  }
+
+  /* ---------- 鼠标 / 触摸板 / 触屏 ---------- */
+
+  function swallow(e) { e.preventDefault(); }
+
+  window.addEventListener('keydown', onKeyDown, true);
+  window.addEventListener('keyup', onKeyUp, true);
+  window.addEventListener('contextmenu', swallow, true);
+  window.addEventListener('selectstart', function (e) {
+    if (!/^(INPUT|TEXTAREA)$/.test(e.target && e.target.tagName || '')) e.preventDefault();
+  }, true);
+  window.addEventListener('dragstart', swallow, true);
+  window.addEventListener('drop', swallow, true);
+  window.addEventListener('auxclick', swallow, true);       // 中键自动滚动
+  window.addEventListener('dblclick', swallow, true);       // 双击选中/缩放
+  window.addEventListener('wheel', swallow, { capture: true, passive: false });
+  window.addEventListener('touchmove', swallow, { capture: true, passive: false });
+  window.addEventListener('touchstart', function (e) {
+    if (e.touches && e.touches.length > 1) e.preventDefault();  // 双指缩放
+  }, { capture: true, passive: false });
+  window.addEventListener('gesturestart', swallow);
+  window.addEventListener('gesturechange', swallow);
+
+  /* iOS Safari 的橡皮筋 */
+  window.addEventListener('scroll', function () { window.scrollTo(0, 0); }, { passive: true });
+
+  document.addEventListener('fullscreenchange', syncFullscreen);
+  document.addEventListener('webkitfullscreenchange', syncFullscreen);
+
+  /* 防误关：关闭标签/刷新前提示一次 */
+  window.addEventListener('beforeunload', function (e) {
+    if (!window.__toyRunning) return;
+    e.preventDefault();
+    e.returnValue = '';
+    return '';
+  });
+
+  return {
+    classify: classify,
+    toggleFullscreen: toggleFullscreen,
+    enterFullscreen: requestFs,
+    isFullscreen: isFullscreen
+  };
+})();
+
+</script>
+<script>
+/* ===========================================================
+   audio.js — 声音引擎
+   全部锁在 C 大调五声音阶里，怎么乱按都不会难听；
+   主链有压缩 + 限幅，砸键盘也不会炸耳朵。
+   =========================================================== */
+
+window.Sound = (function () {
+  'use strict';
+
+  var PENTA = [0, 2, 4, 7, 9];   // 五声音阶：宫商角徵羽
+  var BASE_MIDI = 48;            // C3
+  var MAX_STEP = 14;             // 三个八度
+  var MASTER = 0.34;
+
+  var ctx = null;
+  var comp = null;
+  var out = null;
+  var verb = null;
+  var wet = null;
+  var muted = false;
+  var voices = 0;
+  var recent = [];               // 限速用
+
+  function midiToFreq(m) { return 440 * Math.pow(2, (m - 69) / 12); }
+
+  function stepToMidi(step) {
+    var s = Math.round(step);
+    if (s < 0) s = 0;
+    if (s > MAX_STEP) s = MAX_STEP;
+    return BASE_MIDI + Math.floor(s / 5) * 12 + PENTA[s % 5];
+  }
+
+  function makeImpulse(sec, decay) {
+    var rate = ctx.sampleRate;
+    var len = Math.max(1, Math.floor(rate * sec));
+    var buf = ctx.createBuffer(2, len, rate);
+    for (var ch = 0; ch < 2; ch++) {
+      var d = buf.getChannelData(ch);
+      for (var i = 0; i < len; i++) {
+        d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+      }
+    }
+    return buf;
+  }
+
+  function init() {
+    if (ctx) {
+      if (ctx.state === 'suspended') ctx.resume().catch(function () {});
+      return ctx;
+    }
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    ctx = new AC();
+
+    comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -16;
+    comp.knee.value = 22;
+    comp.ratio.value = 8;
+    comp.attack.value = 0.004;
+    comp.release.value = 0.28;
+
+    out = ctx.createGain();
+    out.gain.value = muted ? 0 : MASTER;
+
+    comp.connect(out);
+    out.connect(ctx.destination);
+
+    try {
+      verb = ctx.createConvolver();
+      verb.buffer = makeImpulse(1.7, 3.4);
+      wet = ctx.createGain();
+      wet.gain.value = 0.16;
+      verb.connect(wet);
+      wet.connect(out);
+    } catch (err) {
+      verb = null;
+    }
+
+    if (ctx.state === 'suspended') ctx.resume().catch(function () {});
+    return ctx;
+  }
+
+  /* 每秒最多 20 个新音 + 同时最多 26 个声部 */
+  function allow() {
+    if (!ctx || muted) return false;
+    var t = ctx.currentTime;
+    while (recent.length && t - recent[0] > 1) recent.shift();
+    if (recent.length > 20) return false;
+    if (voices > 26) return false;
+    recent.push(t);
+    return true;
+  }
+
+  function tone(freq, opt) {
+    if (!ctx || muted) return;
+    var o = opt || {};
+    var t0 = ctx.currentTime + (o.delay || 0);
+    var dur = o.dur || 1.15;
+    var vol = o.vol == null ? 0.4 : o.vol;
+
+    var g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.linearRampToValueAtTime(vol, t0 + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0006, t0 + dur);
+
+    var lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.setValueAtTime(o.cutoff || 3600, t0);
+    lp.Q.value = 0.9;
+
+    var a = ctx.createOscillator();
+    a.type = 'sine';
+    a.frequency.setValueAtTime(freq, t0);
+
+    var b = ctx.createOscillator();
+    b.type = 'triangle';
+    b.frequency.setValueAtTime(freq * 2.004, t0);
+
+    var bg = ctx.createGain();
+    bg.gain.value = 0.18;
+
+    a.connect(lp);
+    b.connect(bg);
+    bg.connect(lp);
+    lp.connect(g);
+    g.connect(comp);
+    if (verb) g.connect(verb);
+
+    voices++;
+    var stopAt = t0 + dur + 0.05;
+    a.start(t0);
+    b.start(t0);
+    a.stop(stopAt);
+    b.stop(stopAt);
+
+    a.onended = function () {
+      voices = Math.max(0, voices - 1);
+      try { g.disconnect(); } catch (err) {}
+    };
+  }
+
+  function noise(dur, type, f0, f1, vol) {
+    if (!ctx || muted) return;
+    var rate = ctx.sampleRate;
+    var len = Math.max(1, Math.floor(rate * dur));
+    var buf = ctx.createBuffer(1, len, rate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+
+    var src = ctx.createBufferSource();
+    src.buffer = buf;
+
+    var bq = ctx.createBiquadFilter();
+    bq.type = type;
+    bq.Q.value = 1.1;
+
+    var t0 = ctx.currentTime;
+    bq.frequency.setValueAtTime(f0, t0);
+    bq.frequency.exponentialRampToValueAtTime(Math.max(60, f1), t0 + dur);
+
+    var g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.linearRampToValueAtTime(vol, t0 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0006, t0 + dur);
+
+    src.connect(bq);
+    bq.connect(g);
+    g.connect(comp);
+    if (verb) g.connect(verb);
+    src.start(t0);
+    src.stop(t0 + dur + 0.03);
+  }
+
+  document.addEventListener('visibilitychange', function () {
+    if (!ctx) return;
+    if (document.hidden) ctx.suspend().catch(function () {});
+    else ctx.resume().catch(function () {});
+  });
+
+  return {
+    init: init,
+
+    muted: function () { return muted; },
+
+    setMuted: function (v) {
+      muted = !!v;
+      if (out) out.gain.value = muted ? 0 : MASTER;
+    },
+
+    /* 音阶第 step 级（0..14） */
+    note: function (step, opt) {
+      if (!allow()) return;
+      tone(midiToFreq(stepToMidi(step)), opt || {});
+    },
+
+    /* 三音和弦，给鼠标点一下用 */
+    chord: function (step, opt) {
+      if (!ctx || muted) return;
+      for (var i = 0; i < 3; i++) {
+        if (!allow()) break;
+        tone(midiToFreq(stepToMidi(step + i * 2)), {
+          vol: 0.26,
+          dur: 1.5,
+          delay: i * 0.04,
+          cutoff: 2600
+        });
+      }
+    },
+
+    /* 哗啦一声（颜料泼出去） */
+    splash: function () {
+      if (!allow()) return;
+      noise(0.26, 'bandpass', 1100, 240, 0.14);
+    },
+
+    /* 滚轮/双指滑动的上扬气流 */
+    whoosh: function () {
+      if (!ctx || muted) return;
+      noise(0.4, 'bandpass', 420, 2600, 0.12);
+    },
+
+    /* 被屏蔽的键：一点点很轻的"咚"，让小孩知道按到了 */
+    knock: function () {
+      if (!allow()) return;
+      tone(midiToFreq(stepToMidi(0)), { vol: 0.12, dur: 0.22, cutoff: 900 });
+    },
+
+    stepToMidi: stepToMidi,
+    midiToFreq: midiToFreq
+  };
+})();
+
+</script>
+<script>
+/* ===========================================================
+   blob.js — 颜料飞溅图形生成
+   一团主色块 + 甩出的尖角 + 卫星点 + 细碎喷点 + 下垂流挂。
+   目标是"啪"一下溅开的感觉，不是气球。
+   =========================================================== */
+
+window.Blob = (function () {
+  'use strict';
+
+  var TAU = Math.PI * 2;
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+
+  /* 用二次贝塞尔把一圈抖动的点连成圆润的闭合色块 */
+  function blobPath(ctx, cx, cy, r, points, wobble, rot, squash) {
+    rot = rot || 0;
+    squash = squash || 1;
+
+    var radii = [];
+    var i;
+    for (i = 0; i < points; i++) {
+      radii.push(1 + rnd(-wobble, wobble));
+    }
+    /* 半径平滑一遍：把生硬棱角磨圆，但保留不规则感 */
+    var src = radii.slice();
+    for (i = 0; i < points; i++) {
+      radii[i] = (src[(i - 1 + points) % points] + src[i] * 2 + src[(i + 1) % points]) / 4;
+    }
+
+    var ca = Math.cos(rot), sa = Math.sin(rot);
+    var pts = [];
+    for (i = 0; i < points; i++) {
+      var a = (i / points) * TAU;
+      var rr = r * radii[i];
+      var lx = Math.cos(a) * rr;
+      var ly = Math.sin(a) * rr * squash;
+      pts.push([cx + lx * ca - ly * sa, cy + lx * sa + ly * ca]);
+    }
+    function mid(p, q) { return [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2]; }
+
+    ctx.beginPath();
+    var first = mid(pts[points - 1], pts[0]);
+    ctx.moveTo(first[0], first[1]);
+    for (i = 0; i < points; i++) {
+      var p = pts[i];
+      var m = mid(p, pts[(i + 1) % points]);
+      ctx.quadraticCurveTo(p[0], p[1], m[0], m[1]);
+    }
+    ctx.closePath();
+  }
+
+  /* 从边缘甩出去的一根尖刺（比起圆条更像溅出来的） */
+  function spike(ctx, cx, cy, r, angle, len, wid) {
+    var ca = Math.cos(angle), sa = Math.sin(angle);
+    var px = -sa, py = ca;
+    var bx = cx + ca * r * 0.82, by = cy + sa * r * 0.82;
+    var mx = cx + ca * (r + len * 0.52), my = cy + sa * (r + len * 0.52);
+    var tx = cx + ca * (r + len), ty = cy + sa * (r + len);
+
+    ctx.beginPath();
+    ctx.moveTo(bx + px * wid, by + py * wid);
+    ctx.quadraticCurveTo(mx + px * wid * 0.62, my + py * wid * 0.62, tx, ty);
+    ctx.quadraticCurveTo(mx - px * wid * 0.62, my - py * wid * 0.62, bx - px * wid, by - py * wid);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  /* 一条胶囊形的流挂 */
+  function drip(ctx, x, y, len, w) {
+    ctx.beginPath();
+    ctx.moveTo(x - w, y);
+    ctx.lineTo(x - w, y + len);
+    ctx.arc(x, y + len, w, Math.PI, 0, true);
+    ctx.lineTo(x + w, y);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  /* 主入口：往静态画布上盖一团颜料 */
+  function paintSplat(ctx, o) {
+    var x = o.x, y = o.y, r = o.r, color = o.color;
+    var wobble = o.wobble == null ? 0.26 : o.wobble;
+    var nDrips = o.drips == null ? 3 : o.drips;
+    var nSats = o.satellites == null ? 7 : o.satellites;
+    var nSpecks = o.specks == null ? 16 : o.specks;
+    var nArms = o.arms == null ? 2 : o.arms;
+    var alpha = o.alpha == null ? 0.96 : o.alpha;
+
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.globalAlpha = alpha;
+
+    var rot = rnd(-0.5, 0.5);
+    var squash = rnd(0.8, 1.2);
+
+    /* 主色块 */
+    blobPath(ctx, x, y, r, o.points || 12, wobble, rot, squash);
+    ctx.fill();
+
+    /* 甩出去的尖瓣 */
+    var i;
+    var lobes = rnd(0, TAU);
+    for (i = 0; i < nArms; i++) {
+      spike(ctx, x, y, r, lobes + i * rnd(1.4, 2.6), r * rnd(0.22, 0.56), r * rnd(0.1, 0.19));
+    }
+
+    /* 卫星点 */
+    var a, d, rr;
+    for (i = 0; i < nSats; i++) {
+      a = rnd(0, TAU);
+      d = r * rnd(1.02, 1.6);
+      rr = r * rnd(0.06, 0.17);
+      ctx.globalAlpha = alpha * 0.95;
+      ctx.beginPath();
+      ctx.arc(x + Math.cos(a) * d, y + Math.sin(a) * d * 0.94, rr, 0, TAU);
+      ctx.fill();
+    }
+
+    /* 细碎喷点 */
+    for (i = 0; i < nSpecks; i++) {
+      a = rnd(0, TAU);
+      d = r * rnd(1.04, 2.4);
+      rr = r * rnd(0.008, 0.032);
+      ctx.globalAlpha = alpha * 0.75;
+      ctx.beginPath();
+      ctx.arc(x + Math.cos(a) * d, y + Math.sin(a) * d, rr, 0, TAU);
+      ctx.fill();
+    }
+
+    /* 流挂：从底部边缘往下垂 */
+    ctx.globalAlpha = alpha * 0.92;
+    for (i = 0; i < nDrips; i++) {
+      var ox = rnd(-0.66, 0.66);
+      var edge = Math.sqrt(Math.max(0, 1 - ox * ox)) * r * 0.84;
+      drip(ctx, x + ox * r, y + edge, r * rnd(0.24, 1.1), r * rnd(0.03, 0.062));
+    }
+
+    ctx.restore();
+  }
+
+  /* 方向键用的长笔扫 */
+  function paintSwoosh(ctx, o) {
+    var x = o.x, y = o.y, r = o.r, dx = o.dx, dy = o.dy, color = o.color;
+    var len = r * rnd(2.6, 3.6);
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineCap = 'round';
+    ctx.globalAlpha = 0.9;
+
+    var steps = 5;
+    for (var i = 0; i < steps; i++) {
+      var t = i / (steps - 1);
+      var w = r * (0.22 + 0.5 * (1 - t));
+      var sx = x + dx * (len * 0.06 * t);
+      var sy = y + dy * (len * 0.06 * t);
+      var ex = x + dx * (len * (0.35 + 0.65 * t));
+      var ey = y + dy * (len * (0.35 + 0.65 * t));
+      ctx.globalAlpha = 0.86 - t * 0.35;
+      ctx.lineWidth = w;
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.lineTo(ex, ey);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    /* 末端甩出去的点 */
+    paintSplat(ctx, {
+      x: x + dx * len, y: y + dy * len,
+      r: r * 0.5, color: color,
+      drips: 2, satellites: 5, specks: 8, arms: 2
+    });
+  }
+
+  return { paintSplat: paintSplat, paintSwoosh: paintSwoosh };
+})();
+
+</script>
+<script>
+/* ===========================================================
+   effects.js — 动态层
+   漂浮音符、闪粉、扩散光环、湿笔迹、会眨眼的小脸、空闲泡泡。
+   这一层每帧清空重画，不吃内存。
+   =========================================================== */
+
+window.FX = (function () {
+  'use strict';
+
+  var TAU = Math.PI * 2;
+  var GLYPHS = ['\u266A', '\u266B', '\u2669', '\u266C', '\u2727'];  // ♪ ♫ ♩ ♬ ✧
+  var INK = '59, 47, 42';
+
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function trim(arr, max) { if (arr.length > max) arr.splice(0, arr.length - max); }
+  function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+
+  var notes = [];
+  var confetti = [];
+  var rings = [];
+  var trails = [];
+  var faces = [];
+  var bubbles = [];
+
+  /* ---------------- 生成 ---------------- */
+
+  function addNotes(x, y, color, n) {
+    n = n || 1;
+    for (var i = 0; i < n; i++) {
+      notes.push({
+        x: x + rnd(-16, 16),
+        y: y + rnd(-12, 12),
+        color: color,
+        glyph: GLYPHS[(Math.random() * GLYPHS.length) | 0],
+        size: rnd(24, 44),
+        vx: rnd(-22, 22),
+        vy: rnd(-68, -38),
+        rot: rnd(-0.35, 0.35),
+        vr: rnd(-0.9, 0.9),
+        life: 0,
+        ttl: rnd(1.5, 2.5)
+      });
+    }
+    trim(notes, 80);
+  }
+
+  function addConfetti(x, y, color, n) {
+    n = n || 8;
+    for (var i = 0; i < n; i++) {
+      var a = rnd(0, TAU);
+      var sp = rnd(70, 320);
+      confetti.push({
+        x: x, y: y,
+        vx: Math.cos(a) * sp,
+        vy: Math.sin(a) * sp - 70,
+        size: rnd(3, 7.5),
+        rot: rnd(0, TAU),
+        vr: rnd(-9, 9),
+        color: Math.random() < 0.35 ? '#ffffff' : color,
+        round: Math.random() < 0.5,
+        life: 0,
+        ttl: rnd(0.65, 1.35)
+      });
+    }
+    trim(confetti, 260);
+  }
+
+  function addRing(x, y, r, color) {
+    rings.push({
+      x: x, y: y,
+      r0: r * 0.5, r1: r * rnd(1.5, 2.1),
+      color: color,
+      life: 0, ttl: rnd(0.35, 0.55)
+    });
+    trim(rings, 24);
+  }
+
+  function addTrail(x, y, color) {
+    trails.push({
+      x: x, y: y,
+      r: rnd(6, 9),
+      color: color || 'hsl(200 70% 60%)',
+      life: 0, ttl: rnd(0.7, 1.0)
+    });
+    trim(trails, 160);
+  }
+
+  function addFace(x, y, size, color) {
+    faces.push({
+      x: x, y: y,
+      size: size,
+      color: color,
+      t: rnd(0, 6),
+      alpha: 1,
+      blink: 0,
+      nextBlink: rnd(1.2, 5),
+      gaze: rnd(-0.25, 0.25),
+      life: 0
+    });
+    trim(faces, 26);
+  }
+
+  function addBubble(w, h) {
+    bubbles.push({
+      x: rnd(0, w),
+      y: h + rnd(10, 60),
+      r: rnd(14, 54),
+      vy: rnd(-42, -16),
+      sway: rnd(-14, 14),
+      color: ['#ff6b6b', '#ffc93c', '#4ecdc4', '#48a9e6', '#a06cd5', '#ff8fab', '#5bb86a', '#ff9f45'][(Math.random() * 8) | 0],
+      life: 0,
+      ttl: rnd(9, 16)
+    });
+    trim(bubbles, 26);
+  }
+
+  /* 洗掉/清屏时的一下：一闪而过的水光 + 几点飞溅，给个"换新纸"的确认 */
+  function clearBurst(w, h) {
+    rings.push({
+      x: w * 0.5, y: h * 0.5,
+      r0: Math.min(w, h) * 0.1,
+      r1: Math.hypot(w, h) * 0.62,
+      color: '#8fd8ff',
+      life: 0, ttl: 0.5
+    });
+    trim(rings, 24);
+
+    var cols = ['#ff6b6b', '#ffc93c', '#4ecdc4', '#48a9e6', '#a06cd5', '#ff8fab', '#5bb86a', '#ff9f45'];
+    for (var i = 0; i < 18; i++) {
+      var a = rnd(0, TAU);
+      var sp = rnd(120, 420);
+      confetti.push({
+        x: w * 0.5, y: h * 0.5,
+        vx: Math.cos(a) * sp,
+        vy: Math.sin(a) * sp,
+        size: rnd(3, 6),
+        rot: rnd(0, TAU),
+        vr: rnd(-9, 9),
+        color: cols[(Math.random() * cols.length) | 0],
+        round: true,
+        life: 0, ttl: rnd(0.5, 0.9)
+      });
+    }
+    trim(confetti, 260);
+  }
+
+  /* ---------------- 更新 ---------------- */
+
+  function update(dt) {
+    var i, o;
+
+    for (i = notes.length - 1; i >= 0; i--) {
+      o = notes[i];
+      o.life += dt;
+      o.vy *= 0.996;
+      o.vx += Math.sin(o.life * 5.5) * 26 * dt;
+      o.x += o.vx * dt;
+      o.y += o.vy * dt;
+      o.rot += o.vr * dt;
+      if (o.life >= o.ttl) notes.splice(i, 1);
+    }
+
+    for (i = confetti.length - 1; i >= 0; i--) {
+      o = confetti[i];
+      o.life += dt;
+      o.vy += 980 * dt;
+      o.vx *= 1 - Math.min(1, 1.6 * dt);
+      o.x += o.vx * dt;
+      o.y += o.vy * dt;
+      o.rot += o.vr * dt;
+      if (o.life >= o.ttl) confetti.splice(i, 1);
+    }
+
+    for (i = rings.length - 1; i >= 0; i--) {
+      o = rings[i];
+      o.life += dt;
+      if (o.life >= o.ttl) rings.splice(i, 1);
+    }
+
+    for (i = trails.length - 1; i >= 0; i--) {
+      o = trails[i];
+      o.life += dt;
+      if (o.life >= o.ttl) trails.splice(i, 1);
+    }
+
+    for (i = bubbles.length - 1; i >= 0; i--) {
+      o = bubbles[i];
+      o.life += dt;
+      o.y += o.vy * dt;
+      o.x += Math.sin((o.life + o.sway) * 1.6) * 12 * dt;
+      if (o.life >= o.ttl || o.y < -o.r * 2) bubbles.splice(i, 1);
+    }
+
+    for (i = faces.length - 1; i >= 0; i--) {
+      o = faces[i];
+      o.life += dt;
+      o.t += dt;
+      if (o.blink > 0) {
+        o.blink -= dt;
+      } else {
+        o.nextBlink -= dt;
+        if (o.nextBlink <= 0) {
+          o.blink = 0.13;
+          o.nextBlink = rnd(2.2, 6.2);
+        }
+      }
+    }
+  }
+
+  /* 洗画布时让小脸一起淡出 */
+  function fadeFaces(dt) {
+    for (var i = faces.length - 1; i >= 0; i--) {
+      faces[i].alpha -= dt * 0.62;
+      if (faces[i].alpha <= 0.02) faces.splice(i, 1);
+    }
+  }
+
+  function clearFaces() { faces.length = 0; }
+
+  /* ---------------- 绘制 ---------------- */
+
+  function drawFace(ctx, f) {
+    var s = f.size;
+    var bob = Math.sin(f.t * 1.9) * s * 0.045;
+    var x = f.x;
+    var y = f.y + bob;
+    var eyeY = y - s * 0.22;
+    var eyeX = s * 0.34;
+    var open = f.blink > 0 ? 0.12 : 1;
+
+    ctx.save();
+    ctx.globalAlpha = f.alpha;
+
+    /* 腮红 */
+    ctx.fillStyle = 'rgba(255, 138, 168, 0.45)';
+    ctx.beginPath();
+    ctx.ellipse(x - s * 0.62, y + s * 0.18, s * 0.2, s * 0.13, 0, 0, TAU);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(x + s * 0.62, y + s * 0.18, s * 0.2, s * 0.13, 0, 0, TAU);
+    ctx.fill();
+
+    /* 眼白 */
+    ctx.fillStyle = '#ffffff';
+    [-1, 1].forEach(function (side) {
+      ctx.beginPath();
+      ctx.ellipse(x + side * eyeX, eyeY, s * 0.29, s * 0.31 * open, 0, 0, TAU);
+      ctx.fill();
+    });
+
+    /* 瞳孔 */
+    if (open > 0.3) {
+      ctx.fillStyle = 'rgb(' + INK + ')';
+      [-1, 1].forEach(function (side) {
+        ctx.beginPath();
+        ctx.arc(x + side * eyeX + f.gaze * s * 0.2, eyeY + s * 0.04, s * 0.135, 0, TAU);
+        ctx.fill();
+      });
+      /* 高光 */
+      ctx.fillStyle = 'rgba(255,255,255,0.95)';
+      [-1, 1].forEach(function (side) {
+        ctx.beginPath();
+        ctx.arc(x + side * eyeX + f.gaze * s * 0.2 - s * 0.05, eyeY - s * 0.03, s * 0.045, 0, TAU);
+        ctx.fill();
+      });
+    }
+
+    /* 笑 */
+    ctx.strokeStyle = 'rgb(' + INK + ')';
+    ctx.lineWidth = Math.max(2, s * 0.09);
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(x, y + s * 0.3, s * 0.34, 0.28 * Math.PI, 0.72 * Math.PI, false);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function render(ctx) {
+    var i, o, k;
+
+    /* 湿笔迹（淡淡的，会蒸发） */
+    for (i = 0; i < trails.length; i++) {
+      o = trails[i];
+      k = 1 - o.life / o.ttl;
+      ctx.globalAlpha = 0.18 * k;
+      ctx.fillStyle = o.color;
+      ctx.beginPath();
+      ctx.arc(o.x, o.y, o.r * (0.5 + 0.5 * k), 0, TAU);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    /* 扩散光环 */
+    for (i = 0; i < rings.length; i++) {
+      o = rings[i];
+      k = o.life / o.ttl;
+      ctx.globalAlpha = (1 - k) * (1 - k) * 0.34;
+      ctx.strokeStyle = o.color;
+      ctx.lineWidth = 2 + 6 * (1 - k);
+      ctx.beginPath();
+      ctx.arc(o.x, o.y, o.r0 + (o.r1 - o.r0) * easeOut(k), 0, TAU);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    /* 空闲泡泡 */
+    for (i = 0; i < bubbles.length; i++) {
+      o = bubbles[i];
+      k = o.life / o.ttl;
+      ctx.globalAlpha = 0.28 * (1 - Math.max(0, k - 0.65) / 0.35);
+      ctx.fillStyle = o.color;
+      ctx.beginPath();
+      ctx.arc(o.x, o.y, o.r, 0, TAU);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    /* 闪粉 */
+    for (i = 0; i < confetti.length; i++) {
+      o = confetti[i];
+      k = o.life / o.ttl;
+      ctx.save();
+      ctx.globalAlpha = 1 - k * k;
+      ctx.translate(o.x, o.y);
+      ctx.rotate(o.rot);
+      ctx.fillStyle = o.color;
+      if (o.round) {
+        ctx.beginPath();
+        ctx.arc(0, 0, o.size * 0.5, 0, TAU);
+        ctx.fill();
+      } else {
+        ctx.fillRect(-o.size * 0.5, -o.size * 0.35, o.size, o.size * 0.7);
+      }
+      ctx.restore();
+    }
+
+    /* 漂浮音符：白边 + 彩心，像贴纸 */
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (i = 0; i < notes.length; i++) {
+      o = notes[i];
+      k = o.life / o.ttl;
+      ctx.save();
+      ctx.globalAlpha = 1 - k * k;
+      ctx.translate(o.x, o.y);
+      ctx.rotate(o.rot);
+      ctx.font = '700 ' + o.size.toFixed(0) + 'px "Segoe UI Symbol", "Apple Symbols", "DejaVu Sans", sans-serif';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = 'rgba(255,255,255,0.92)';
+      ctx.lineWidth = o.size * 0.22;
+      ctx.strokeText(o.glyph, 0, 0);
+      ctx.fillStyle = o.color;
+      ctx.fillText(o.glyph, 0, 0);
+      ctx.restore();
+    }
+
+    /* 小脸 */
+    for (i = 0; i < faces.length; i++) drawFace(ctx, faces[i]);
+
+    ctx.globalAlpha = 1;
+  }
+
+  function count() {
+    return notes.length + confetti.length + rings.length + faces.length + bubbles.length;
+  }
+
+  return {
+    addNotes: addNotes,
+    addConfetti: addConfetti,
+    addRing: addRing,
+    addTrail: addTrail,
+    addFace: addFace,
+    addBubble: addBubble,
+    clearBurst: clearBurst,
+    fadeFaces: fadeFaces,
+    clearFaces: clearFaces,
+    update: update,
+    render: render,
+    count: count
+  };
+})();
+
+</script>
+<script>
+/* ===========================================================
+   main.js — 主控
+   分层画布：paint 层永久留色，fx 层每帧重画。
+   键盘 / 鼠标 / 触摸板 / 多点触控 / 滚轮 → 颜料 + 音符。
+   画满自动洗画；Ctrl+Shift+X 立刻清屏。
+   =========================================================== */
+
+(function () {
+  'use strict';
+
+  var PALETTE = ['#ff6b6b', '#ffc93c', '#4ecdc4', '#48a9e6', '#a06cd5', '#ff8fab', '#5bb86a', '#ff9f45'];
+  var DEMO = /(?:[?&])demo=1(?:&|$)/.test(location.search);
+  var DEBUG = /(?:[?&])debug=1(?:&|$)/.test(location.search);
+
+  /* 自动洗画的参数 */
+  var WASH_AT = 0.55;      // 画布被颜料占到这么多就开始洗
+  var LOAD_AT = 300;       // 兜底：累计涂鸦量到这个数也洗（不依赖覆盖率测量）
+  var LOAD_FORCE = 560;    // 一直不停手时，到这个量强行洗
+  var PAUSE_MS = 700;      // 画满后等手停一下再洗，别在他正画的时候擦
+  var WASH_CLEAN = 0.04;   // 洗到这么干净就算洗完
+  var WASH_TIME = 1.8;     // 洗画最长秒数
+  var IDLE_MS = 12000;     // 多久没动静开始浮泡泡
+
+  /* 键位对应音阶：数字行最高，最下一行最低 */
+  var ROWS = ['`1234567890-=', 'qwertyuiop[]\\', "asdfghjkl;'", 'zxcvbnm,./'];
+  var ROW_OFFSET = [10, 6, 3, 0];
+
+  var paint = document.getElementById('paint');
+  var fx = document.getElementById('fx');
+  var startEl = document.getElementById('start');
+  var goBtn = document.getElementById('go');
+  var pctx = paint.getContext('2d');
+  var fctx = fx.getContext('2d');
+
+  var st = {
+    running: false,
+    w: 0, h: 0, dpr: 1,
+    scale: 1,
+    washing: false,
+    washT: 0,
+    washProbe: 0,
+    densityT: 0,
+    paintLoad: 0,
+    lastCover: 0,
+    lastPaint: 0,
+    hue: Math.random() * 360,
+    lastColor: '',
+    lastInput: performance.now(),
+    lastWheel: 0,
+    lastRepeat: 0,
+    lastTrail: { x: -999, y: -999 },
+    lastAmbient: 0,
+    demoT: 0,
+    demoSeeded: false
+  };
+
+  var pointers = new Map();
+  var recentPos = [];
+
+  /* ---------------- 小工具 ---------------- */
+
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+
+  function pickColor() {
+    var c = st.lastColor;
+    for (var i = 0; i < 6 && c === st.lastColor; i++) {
+      c = PALETTE[(Math.random() * PALETTE.length) | 0];
+    }
+    st.lastColor = c;
+    return c;
+  }
+
+  function hueColor() {
+    st.hue = (st.hue + 1.7) % 360;
+    return 'hsl(' + st.hue.toFixed(0) + ' 78% 60%)';
+  }
+
+  function randStep() { return (Math.random() * 15) | 0; }
+
+  function stepForKey(e) {
+    var k = (e.key || '').toLowerCase();
+    for (var r = 0; r < ROWS.length; r++) {
+      var i = ROWS[r].indexOf(k);
+      if (i >= 0) return clamp(ROW_OFFSET[r] + (i % 5), 0, 14);
+    }
+    if (k === ' ' || k === 'enter') return 0;
+    if (k === 'arrowup') return 12;
+    if (k === 'arrowdown') return 2;
+    if (k === 'arrowleft') return 5;
+    if (k === 'arrowright') return 9;
+    return randStep();
+  }
+
+  /* 挑一个离最近几团颜料尽量远的位置，避免堆在一起 */
+  function pickPos(r) {
+    var best = null, bestD = -1;
+    for (var i = 0; i < 5; i++) {
+      var x = r + Math.random() * Math.max(1, st.w - r * 2);
+      var y = r + Math.random() * Math.max(1, st.h - r * 2);
+      var d = Infinity;
+      for (var j = 0; j < recentPos.length; j++) {
+        d = Math.min(d, Math.hypot(recentPos[j].x - x, recentPos[j].y - y));
+      }
+      if (d > bestD) { bestD = d; best = { x: x, y: y }; }
+    }
+    recentPos.push(best);
+    if (recentPos.length > 4) recentPos.shift();
+    return best;
+  }
+
+  /* ---------------- 画布尺寸 ---------------- */
+
+  function resize() {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = Math.max(1, window.innerWidth);
+    var h = Math.max(1, window.innerHeight);
+
+    var keep = null;
+    if (st.w && paint.width) {
+      keep = document.createElement('canvas');
+      keep.width = paint.width;
+      keep.height = paint.height;
+      keep.getContext('2d').drawImage(paint, 0, 0);
+    }
+
+    st.w = w; st.h = h; st.dpr = dpr;
+    /* 小屏幕上把颜料块按比例缩小，免得一团就占满屏 */
+    st.scale = clamp(Math.min(w, h) / 900, 0.6, 1.25);
+
+    var list = [paint, fx];
+    for (var i = 0; i < list.length; i++) {
+      var c = list[i];
+      c.width = Math.round(w * dpr);
+      c.height = Math.round(h * dpr);
+      c.style.width = w + 'px';
+      c.style.height = h + 'px';
+    }
+
+    pctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    fctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    pctx.lineJoin = 'round';
+    pctx.lineCap = 'round';
+    fctx.lineJoin = 'round';
+    fctx.lineCap = 'round';
+
+    if (keep) {
+      pctx.save();
+      pctx.globalAlpha = 1;
+      pctx.drawImage(keep, 0, 0, keep.width, keep.height, 0, 0, w, h);
+      pctx.restore();
+    }
+  }
+
+  /* ---------------- 出效果 ---------------- */
+
+  function spawnSplat(x, y, o) {
+    o = o || {};
+    var r = (o.r || 44) * st.scale;
+    var color = o.color || pickColor();
+
+    Blob.paintSplat(pctx, {
+      x: x, y: y, r: r, color: color,
+      drips: o.drips == null ? 3 : o.drips,
+      satellites: o.satellites == null ? 6 : o.satellites,
+      arms: r > 40 ? 3 : 2,
+      wobble: o.wobble == null ? 0.21 : o.wobble,
+      alpha: 0.95
+    });
+
+    FX.addNotes(x, y - r * 0.3, color, o.notes || 1);
+    FX.addConfetti(x, y, color, o.confetti == null ? 6 : o.confetti);
+
+    if (o.character) FX.addFace(x, y - r * 0.04, r * 0.52, color);
+
+    st.paintLoad += 1 + r / 50;
+    st.lastPaint = performance.now();
+  }
+
+  /* ---------------- 清屏 / 自动洗画 ---------------- */
+
+  function resetWashState() {
+    st.washing = false;
+    st.washT = 0;
+    st.washProbe = 0;
+    st.densityT = 0;
+    st.paintLoad = 0;
+    st.lastCover = 0;
+  }
+
+  /* 立刻清成一张干净白纸 */
+  function clearAll() {
+    pctx.clearRect(0, 0, st.w, st.h);
+    FX.clearFaces();
+    resetWashState();
+    FX.clearBurst(st.w, st.h);
+  }
+
+  /* 家长快捷键 Ctrl+Shift+X（或 Ctrl+Shift+Delete）走这里 */
+  window.__toyClear = function () {
+    if (!st.running) return;
+    clearAll();
+    Sound.init();
+    Sound.splash();
+    st.lastInput = performance.now();
+  };
+
+  /* 把画布缩到 160×100 数一下有多少像素"有颜料"：
+     不管是砸键盘还是拿鼠标乱拖，画满了都会洗。 */
+  var probe = document.createElement('canvas');
+  probe.width = 160;
+  probe.height = 100;
+  var probeCtx = probe.getContext('2d', { willReadFrequently: true });
+
+  function measureCoverage() {
+    if (!probeCtx || !st.w) return 0;
+    probeCtx.clearRect(0, 0, probe.width, probe.height);
+    try {
+      probeCtx.drawImage(paint, 0, 0, probe.width, probe.height);
+    } catch (err) { return 0; }
+    var d = probeCtx.getImageData(0, 0, probe.width, probe.height).data;
+    var hit = 0;
+    for (var i = 3; i < d.length; i += 4) {
+      if (d[i] > 24) hit++;
+    }
+    return hit / (probe.width * probe.height);
+  }
+
+  function beginWash() {
+    if (st.washing) return;
+    st.washing = true;
+    st.washT = 0;
+    st.washProbe = 0;
+    st.densityT = 0;
+  }
+
+  /* ---------------- 启动 ---------------- */
+
+  function start() {
+    if (st.running) return;
+    st.running = true;
+    window.__toyRunning = true;
+    st.lastInput = performance.now();
+
+    startEl.classList.add('gone');
+    setTimeout(function () {
+      if (startEl.parentNode) startEl.style.display = 'none';
+    }, 520);
+
+    Sound.init();
+    Guard.enterFullscreen();
+
+    /* 初始化：一张干净的白纸，什么都不画 */
+    pctx.clearRect(0, 0, st.w, st.h);
+    FX.clearFaces();
+    resetWashState();
+  }
+
+  window.__toyStart = start;
+
+  /* ---------------- 键盘 ---------------- */
+
+  function repeatPulse() {
+    var now = performance.now();
+    if (now - st.lastRepeat < 95) return;
+    st.lastRepeat = now;
+    var p = pickPos(20);
+    Blob.paintSplat(pctx, { x: p.x, y: p.y, r: rnd(8, 16), color: pickColor(), drips: 1, satellites: 2, specks: 3 });
+    FX.addRing(p.x, p.y, 14, pickColor());
+    st.paintLoad += 0.4;
+    st.lastPaint = performance.now();
+    Sound.note(randStep(), { vol: 0.14, dur: 0.4, cutoff: 2400 });
+  }
+
+  function onKeyDown(e) {
+    if (!st.running) { if (!e.repeat) start(); return; }
+    st.lastInput = performance.now();
+
+    if (e.repeat) { repeatPulse(); return; }
+
+    var key = e.key;
+    var big = key === ' ' || key === 'Enter' || key === 'NumpadEnter';
+    var isArrow = key === 'ArrowUp' || key === 'ArrowDown' || key === 'ArrowLeft' || key === 'ArrowRight';
+    var step = stepForKey(e);
+    var r = big ? rnd(72, 104) : rnd(28, 54);
+    var pos = pickPos(r);
+
+    if (isArrow) {
+      var dx = key === 'ArrowLeft' ? -1 : key === 'ArrowRight' ? 1 : 0;
+      var dy = key === 'ArrowUp' ? -1 : key === 'ArrowDown' ? 1 : 0;
+      Blob.paintSwoosh(pctx, { x: pos.x, y: pos.y, r: r * st.scale, dx: dx, dy: dy, color: pickColor() });
+      FX.addNotes(pos.x + dx * r * 2.4, pos.y + dy * r * 2.4, pickColor(), 2);
+      FX.addConfetti(pos.x + dx * r * 2.4, pos.y + dy * r * 2.4, pickColor(), 10);
+      Sound.note(step, { vol: 0.34, dur: 0.9, cutoff: 2400 });
+      st.paintLoad += 4;
+      st.lastPaint = performance.now();
+      return;
+    }
+
+    spawnSplat(pos.x, pos.y, {
+      r: r,
+      character: Math.random() < 0.24,
+      confetti: big ? 20 : 7,
+      notes: big ? 2 : 1,
+      drips: big ? 5 : 3
+    });
+    Sound.note(step, { vol: big ? 0.5 : 0.4, dur: big ? 1.6 : 1.05 });
+  }
+
+  window.addEventListener('keydown', onKeyDown, false);
+
+  /* ---------------- 指针（鼠标 / 触屏 / 触摸板） ---------------- */
+
+  function onPointerDown(e) {
+    if (!st.running) { start(); return; }
+    st.lastInput = performance.now();
+
+    var x = e.clientX, y = e.clientY;
+    var touch = e.pointerType === 'touch';
+    var color = hueColor();
+
+    pointers.set(e.pointerId, {
+      x: x, y: y,
+      color: color,
+      width: touch ? 30 : 22,
+      lastSound: 0
+    });
+
+    var r = touch ? rnd(56, 78) : rnd(42, 64);
+    spawnSplat(x, y, {
+      r: r,
+      character: Math.random() < 0.3,
+      confetti: 14,
+      notes: 1,
+      drips: 3
+    });
+
+    if (Math.random() < 0.45) Sound.chord(randStep());
+    else Sound.note(randStep(), { vol: 0.4 });
+    Sound.splash();
+  }
+
+  function onPointerMove(e) {
+    if (!st.running) return;
+    st.lastInput = performance.now();
+
+    var p = pointers.get(e.pointerId);
+
+    /* 没按下时的湿笔迹（鼠标 / 触摸板划过） */
+    if (!p) {
+      if (e.pointerType === 'mouse' && e.buttons === 0) {
+        var dx0 = e.clientX - st.lastTrail.x;
+        var dy0 = e.clientY - st.lastTrail.y;
+        if (dx0 * dx0 + dy0 * dy0 > 26) {
+          FX.addTrail(e.clientX, e.clientY, 'hsl(' + ((st.hue + 170) % 360).toFixed(0) + ' 75% 62%)');
+          st.lastTrail.x = e.clientX;
+          st.lastTrail.y = e.clientY;
+        }
+      }
+      return;
+    }
+
+    var dx = e.clientX - p.x;
+    var dy = e.clientY - p.y;
+    var dist = Math.hypot(dx, dy);
+    if (dist < 1.1) return;
+
+    p.width = Math.min(54, 16 + Math.sqrt(dist) * 6.5 + (e.pointerType === 'touch' ? 10 : 0)) * st.scale;
+
+    var col = hueColor();
+
+    pctx.save();
+    pctx.strokeStyle = col;
+    pctx.globalAlpha = 0.86;
+    pctx.lineWidth = p.width;
+    pctx.beginPath();
+    pctx.moveTo(p.x, p.y);
+    pctx.lineTo(e.clientX, e.clientY);
+    pctx.stroke();
+    pctx.restore();
+
+    /* 甩出去的小点 */
+    if (Math.random() < 0.3) {
+      var a = Math.random() * Math.PI * 2;
+      var d = rnd(10, p.width * 1.6);
+      pctx.save();
+      pctx.globalAlpha = 0.7;
+      pctx.fillStyle = col;
+      pctx.beginPath();
+      pctx.arc(e.clientX + Math.cos(a) * d, e.clientY + Math.sin(a) * d, rnd(1.5, 5), 0, Math.PI * 2);
+      pctx.fill();
+      pctx.restore();
+    }
+
+    p.x = e.clientX;
+    p.y = e.clientY;
+    st.paintLoad += dist / 200;
+    st.lastPaint = performance.now();
+
+    var now = performance.now();
+    if (now - p.lastSound > 105) {
+      p.lastSound = now;
+      Sound.note(randStep(), { vol: 0.15, dur: 0.6, cutoff: 2200 });
+    }
+  }
+
+  function onPointerUp(e) {
+    var p = pointers.get(e.pointerId);
+    if (!p) return;
+    pointers.delete(e.pointerId);
+    if (!st.running) return;
+    /* 收笔时滴一小滴 */
+    Blob.paintSplat(pctx, {
+      x: e.clientX, y: e.clientY,
+      r: rnd(10, 22), color: p.color,
+      drips: 1, satellites: 3, specks: 4, alpha: 0.85
+    });
+  }
+
+  window.addEventListener('pointerdown', onPointerDown, { passive: false });
+  window.addEventListener('pointermove', onPointerMove, { passive: true });
+  window.addEventListener('pointerup', onPointerUp, { passive: true });
+  window.addEventListener('pointercancel', onPointerUp, { passive: true });
+
+  /* ---------------- 滚轮 / 双指滑动 ---------------- */
+
+  function onWheel(e) {
+    e.preventDefault();
+    if (!st.running) return;
+    st.lastInput = performance.now();
+
+    var now = performance.now();
+    if (now - st.lastWheel < 85) return;
+    st.lastWheel = now;
+
+    var x = e.clientX || st.w / 2;
+    var y = e.clientY || st.h / 2;
+    var dir = (e.deltaY || 0) > 0 ? 1 : -1;
+
+    for (var i = 0; i < 6; i++) {
+      var px = x + rnd(-72, 72);
+      var py = y + rnd(-34, 34) + i * dir * 15;
+      var rr = rnd(5, 16);
+      pctx.save();
+      pctx.globalAlpha = 0.8;
+      pctx.fillStyle = pickColor();
+      pctx.beginPath();
+      pctx.arc(px, py, rr, 0, Math.PI * 2);
+      pctx.fill();
+      /* 小尾巴 */
+      pctx.globalAlpha = 0.5;
+      pctx.fillRect(px - rr * 0.35, py - dir * rr * 2.6, rr * 0.7, rr * 2.6);
+      pctx.restore();
+    }
+
+    FX.addRing(x, y, 26, pickColor());
+    FX.addConfetti(x, y, pickColor(), 6);
+    st.paintLoad += 1;
+    st.lastPaint = performance.now();
+    Sound.whoosh();
+  }
+
+  window.addEventListener('wheel', onWheel, { passive: false });
+
+  window.addEventListener('resize', resize);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', resize);
+
+  /* ---------------- 主循环 ---------------- */
+
+  var lastT = performance.now();
+
+  function frame(now) {
+    var dt = Math.min(0.05, Math.max(0, (now - lastT) / 1000));
+    lastT = now;
+
+    /* 洗画：擦到干净为止（不是擦固定时长），收尾再彻底清一次，不留底影 */
+    if (st.washing) {
+      pctx.save();
+      pctx.globalCompositeOperation = 'destination-out';
+      pctx.globalAlpha = 0.075;
+      pctx.fillStyle = '#000000';
+      pctx.fillRect(0, 0, st.w, st.h);
+      pctx.restore();
+
+      FX.fadeFaces(dt * 1.4);
+      st.washT += dt;
+      st.washProbe += dt;
+
+      if (st.washProbe > 0.3) {
+        st.washProbe = 0;
+        if (st.washT > 0.5 && measureCoverage() < WASH_CLEAN) st.washT = 99;
+      }
+
+      if (st.washT > WASH_TIME) {
+        pctx.clearRect(0, 0, st.w, st.h);
+        FX.clearFaces();
+        FX.clearBurst(st.w, st.h);
+        resetWashState();
+      }
+    } else if (st.running && !DEMO) {
+      /* 每 0.6 秒量一次画布占用；两条触发线 + 停手才洗 */
+      st.densityT += dt;
+      if (st.densityT > 0.6) {
+        st.densityT = 0;
+        st.lastCover = measureCoverage();
+        var paused = now - st.lastPaint > PAUSE_MS;
+        if (st.lastCover > 0.75) beginWash();                        // 实在太满了，立刻洗
+        else if ((st.lastCover > WASH_AT || st.paintLoad > LOAD_AT) && paused) beginWash();
+        else if (st.paintLoad > LOAD_FORCE) beginWash();             // 一直不停手，兜底硬洗
+      }
+    }
+
+    /* 空闲太久：自己浮几个泡泡，别看起来死了 */
+    if (st.running && now - st.lastInput > IDLE_MS && now - st.lastAmbient > 620) {
+      st.lastAmbient = now;
+      FX.addBubble(st.w, st.h);
+    }
+
+    if (DEMO) demo(now, dt);
+
+    FX.update(dt);
+    fctx.clearRect(0, 0, st.w, st.h);
+    FX.render(fctx);
+
+    /* ?debug=1：左上角显示实时数据，方便确认洗画逻辑在跑 */
+    if (DEBUG) {
+      var label = '覆盖 ' + Math.round(st.lastCover * 100) + '% / 阈值 ' + Math.round(WASH_AT * 100) + '%'
+        + '　负荷 ' + Math.round(st.paintLoad) + ' / ' + LOAD_AT
+        + (st.washing ? '　洗画中…' : '');
+      fctx.save();
+      fctx.font = '600 13px "Segoe UI", system-ui, sans-serif';
+      fctx.textAlign = 'left';
+      fctx.textBaseline = 'middle';
+      var tw = fctx.measureText(label).width;
+      fctx.fillStyle = 'rgba(255,255,255,0.82)';
+      fctx.beginPath();
+      fctx.roundRect ? fctx.roundRect(10, 10, tw + 20, 26, 13) : fctx.rect(10, 10, tw + 20, 26);
+      fctx.fill();
+      fctx.fillStyle = 'rgba(59,47,42,0.78)';
+      fctx.fillText(label, 20, 23);
+      fctx.restore();
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------------- demo 模式（自测截图用） ---------------- */
+
+  function demo(now, dt) {
+    if (!st.demoSeeded) {
+      st.demoSeeded = true;
+      var i;
+      for (i = 0; i < 22; i++) {
+        spawnSplat(rnd(0.06, 0.94) * st.w, rnd(0.08, 0.88) * st.h, {
+          r: rnd(30, 78),
+          character: Math.random() < 0.32,
+          confetti: Math.random() < 0.4 ? 12 : 0,
+          notes: 1
+        });
+      }
+      /* 两道彩虹笔迹 */
+      for (var s = 0; s < 2; s++) {
+        var x0 = rnd(0.1, 0.3) * st.w;
+        var y0 = rnd(0.3, 0.7) * st.h;
+        for (var k = 0; k < 16; k++) {
+          var x1 = x0 + Math.cos(k * 0.42 + s) * 34 + 20;
+          var y1 = y0 + Math.sin(k * 0.42 + s) * 26;
+          pctx.save();
+          pctx.strokeStyle = hueColor();
+          pctx.globalAlpha = 0.86;
+          pctx.lineWidth = 26;
+          pctx.beginPath();
+          pctx.moveTo(x0, y0);
+          pctx.lineTo(x1, y1);
+          pctx.stroke();
+          pctx.restore();
+          x0 = x1; y0 = y1;
+        }
+      }
+      return;
+    }
+
+    st.demoT += dt;
+    if (st.demoT > 0.18) {
+      st.demoT = 0;
+      var pos = pickPos(40);
+      spawnSplat(pos.x, pos.y, {
+        r: rnd(28, 56),
+        character: Math.random() < 0.3,
+        confetti: 8,
+        notes: 1
+      });
+    }
+  }
+
+  /* ---------------- 引导 ---------------- */
+
+  goBtn.addEventListener('click', function (ev) {
+    ev.preventDefault();
+    start();
+  });
+
+  document.addEventListener('visibilitychange', function () {
+    lastT = performance.now();
+  });
+
+  resize();
+  requestAnimationFrame(frame);
+
+  if (DEMO) {
+    startEl.classList.add('gone');
+    startEl.style.display = 'none';
+    st.running = true;
+  }
+})();
+
+</script>
+</body>
+</html>

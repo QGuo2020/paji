@@ -65,39 +65,17 @@
 - 窗口大小变了，已经画的内容会保留并按比例缩放。
 - 所有声音都限制在五声音阶 + 压缩限幅，音量上限被压得比较低，不会突然炸耳朵。
 
-## 部署到 GitHub Pages（0 元，不需要服务器）
+## 部署到 GitHub Pages（0 元，网页上传即可）
 
-纯静态站，最适合扔到 GitHub Pages 白玩：**永久免费、自动 HTTPS、不用买服务器、不用备案**。
+**上线步骤看 [UPLOAD.md](UPLOAD.md)**，按你 `sad-notes` 那套流程走。两条路：
 
-1. 在 GitHub 新建一个仓库（例如 `paji`），可见性选 **Public**（免费版 Pages 要求公开）。
-2. 本机推上去：
+- **方式 A（推荐）**：`node tools/bundle.mjs` 生成单文件 `dist/index.html`，只上传这一个文件到仓库根目录 → 完事。不会漏文件、不用管目录、也不会有 js 缓存问题。
+- **方式 B**：把 `index.html` + `css/` + `js/` 整个目录拖上去，保留源码结构。
 
-```powershell
-cd D:\02_Git\个人项目\paint-smash
-git remote add origin https://github.com/<你的用户名>/paji.git
-git branch -M main
-git push -u origin main
-```
+然后 仓库 → Settings → Pages → Source `Deploy from a branch` → `main` / `/ (root)` → Save，等 1~3 分钟打开
+`https://<你的用户名>/<仓库名>/`。
 
-3. 仓库 → **Settings → Pages** → Source 选 `Deploy from a branch` → Branch 选 `main` + `/ (root)` → Save。
-4. 等 30~60 秒，打开 `https://<你的用户名>.github.io/paji/` 就是成品。
-
-要点：
-
-- 站内路径全是相对的（`css/style.css`、`js/*.js`），放子路径也能跑。
-- 没有构建步骤，push 完就是最终产物。
-- `.nojekyll` 已放好，避免 GitHub 用 Jekyll 处理静态文件。
-- 以后每次改完：`powershell -File .\tools\push.ps1 "改了啥"`（见 `tools/PUSH.md`）。
-
-### 绑自己的域名（可选，同样不用备案）
-
-1. 仓库 → Settings → Pages → **Custom domain** 填 `paji.top`。
-2. 到域名商 DNS 加记录：子域名用 `CNAME → <你的用户名>.github.io`；根域名用 `A` 记录指向 GitHub 的四个 IP（185.199.108.153 / 109.153 / 110.153 / 111.153）。
-3. 勾上 **Enforce HTTPS**，证书几分钟内自动签发。
-4. 仓库根目录会自动生成 `CNAME` 文件，不用手写。
-
-> GitHub 的服务器在海外，所以自定义域名**不需要 ICP 备案**；代价是国内访问 100~400ms，偶尔抽风。
-> 要又快又稳就得回国备案（腾讯云/阿里云轻量服务器 38~99 元/年 + 备案）。
+纯静态站，所以：不用买服务器、不用备案、自动 HTTPS、免费额度（1GB 仓库 / 每月 100GB 流量）够用一辈子。
 
 ## 自测 / 截图
 
