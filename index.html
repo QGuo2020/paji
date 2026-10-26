@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#ffc93c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>随便按吧 · 颜色与音符</title>
+<link rel="stylesheet" href="css/style.css?v=3">
+</head>
+<body>
+
+<canvas id="paint" aria-hidden="true"></canvas>
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<div id="start">
+  <div class="card">
+    <div class="drops" aria-hidden="true">
+      <span class="d d1"></span>
+      <span class="d d2"></span>
+      <span class="d d3"></span>
+      <span class="d d4"></span>
+      <span class="d d5"></span>
+    </div>
+    <h1>随便按吧</h1>
+    <p class="sub">键盘、鼠标、触摸板<br>每一下都会变出颜色和音乐</p>
+    <button id="go" type="button" aria-label="开始玩"><span aria-hidden="true">🎨</span></button>
+    <p class="hint">按任意键 / 点一下开始</p>
+    <p class="hint hint2">F11 全屏　·　Ctrl + Shift + X 清屏重画</p>
+  </div>
+</div>
+
+<script src="js/guard.js?v=3"></script>
+<script src="js/audio.js?v=3"></script>
+<script src="js/blob.js?v=3"></script>
+<script src="js/effects.js?v=3"></script>
+<script src="js/main.js?v=3"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+# 依赖/构建产物：本项目没有
+node_modules/
+*.log
+
+# 本地临时文件
+*.bak
+*.tmp
+_*.png
+Thumbs.db
+desktop.ini
+.DS_Store
